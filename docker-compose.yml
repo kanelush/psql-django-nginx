@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=db_v1
+      - POSTGRES_USER=user1
+      - POSTGRES_PASSWORD=user1
+  django_gunicorn:
+    volumes:
+      - static:/static
+    env_file: 
+      - .env
+    build:
+      context: .
+    ports: 
+      - "8000:8000"
+    depends_on:
+      - db
+  frontend:
+    restart: unless-stopped
+    image: staticfloat/nginx-certbot
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+    environment:
+      CERTBOT_EMAIL: canelosspa56@gmail.com
+    volumes:
+       - static:/static 
+       - ./conf.d:/etc/nginx/user.conf.d:ro
+       - letsencrypt:/etc/letsencrypt      
+    depends_on:
+      - django_gunicorn 
+
+
+
+volumes:
+  static:
+  letsencrypt:
